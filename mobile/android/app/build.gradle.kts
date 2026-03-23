@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,10 +7,26 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Load Supabase config from .env file (same source as Flutter)
+val envFile = rootProject.file("../.env")
+val envProps = Properties()
+if (envFile.exists()) {
+    envFile.readLines().forEach { line ->
+        if (line.isNotBlank() && !line.startsWith("#") && line.contains("=")) {
+            val (key, value) = line.split("=", limit = 2)
+            envProps[key.trim()] = value.trim()
+        }
+    }
+}
+
 android {
     namespace = "com.clipsync.clipsync_mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -28,6 +46,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Expose Supabase config to Kotlin via BuildConfig
+        buildConfigField("String", "SUPABASE_URL", "\"${envProps.getProperty("SUPABASE_URL", "")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${envProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
     }
 
     buildTypes {

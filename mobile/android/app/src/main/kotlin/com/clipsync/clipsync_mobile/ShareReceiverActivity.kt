@@ -18,9 +18,14 @@ import kotlin.concurrent.thread
 class ShareReceiverActivity : Activity() {
 
     companion object {
-        private const val SUPABASE_URL = "https://iyahabuqcwfdkeuzbxmg.supabase.co"
-        private const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5YWhhYnVxY3dmZGtldXpieG1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODEwNDYsImV4cCI6MjA4OTg1NzA0Nn0.ILUhxJLxlQMXLKIPZmQwqJ6r0ildiW5Uh6aEQ7Sv1JI"
-        private const val AUTH_PREFS_KEY = "flutter.sb-iyahabuqcwfdkeuzbxmg-auth-token"
+        // Read from BuildConfig (populated from .env via build.gradle.kts)
+        private val SUPABASE_URL = BuildConfig.SUPABASE_URL
+        private val SUPABASE_ANON_KEY = BuildConfig.SUPABASE_ANON_KEY
+        // Derive auth prefs key from Supabase project ref
+        private val AUTH_PREFS_KEY: String by lazy {
+            val ref = SUPABASE_URL.removePrefix("https://").substringBefore(".supabase.co")
+            "flutter.sb-$ref-auth-token"
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
