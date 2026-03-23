@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clipsync_mobile/features/auth/application/auth_notifier.dart';
 import 'package:clipsync_mobile/features/clips/application/clips_notifier.dart';
+import 'package:clipsync_mobile/features/clips/application/realtime_clips.dart';
 import 'package:clipsync_mobile/features/clips/presentation/clip_list.dart';
 
 class ClipsScreen extends ConsumerWidget {
@@ -9,6 +10,9 @@ class ClipsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Activate Realtime subscription
+    ref.watch(realtimeClipsProvider);
+
     final clipsState = ref.watch(clipsNotifierProvider);
     final notifier = ref.read(clipsNotifierProvider.notifier);
 
