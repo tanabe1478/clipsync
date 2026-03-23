@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:clipsync_mobile/features/auth/application/auth_notifier.dart';
 import 'package:clipsync_mobile/features/auth/presentation/auth_screen.dart';
 import 'package:clipsync_mobile/features/clips/presentation/clips_screen.dart';
+import 'package:clipsync_mobile/features/settings/presentation/settings_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -25,6 +26,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/clips',
         builder: (context, state) => const ClipsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

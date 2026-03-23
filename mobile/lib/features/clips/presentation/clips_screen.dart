@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:clipsync_mobile/features/auth/application/auth_notifier.dart';
 import 'package:clipsync_mobile/features/clips/application/clips_notifier.dart';
 import 'package:clipsync_mobile/features/clips/application/realtime_clips.dart';
@@ -21,11 +22,9 @@ class ClipsScreen extends ConsumerWidget {
         title: const Text('ClipSync'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
-            onPressed: () async {
-              await ref.read(authNotifierProvider.notifier).signOut();
-            },
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
