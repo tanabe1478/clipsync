@@ -6,8 +6,10 @@ use tauri_plugin_store::StoreExt;
 const STORE_FILE: &str = "shortcuts.json";
 const STORE_KEY: &str = "shortcuts";
 
-const DEFAULT_SAVE_CLIP: &str = "CmdOrCtrl+Shift+C";
-const DEFAULT_SHOW_HISTORY: &str = "CmdOrCtrl+Shift+V";
+// Using Alt modifier to avoid conflicts with common shortcuts on Windows
+// (Ctrl+Shift+C is often used by screenshot tools, DevTools, etc.)
+const DEFAULT_SAVE_CLIP: &str = "CmdOrCtrl+Alt+C";
+const DEFAULT_SHOW_HISTORY: &str = "CmdOrCtrl+Alt+V";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShortcutConfig {
@@ -80,13 +82,34 @@ fn unregister_all(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 /// Called during app setup to load and register shortcuts.
+/// On Windows, global shortcuts may conflict with other apps.
+/// We log errors but don't crash the app - users can change shortcuts in settings.
 pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let config = load_config(app.handle());
-    register_shortcuts_inner(app.handle(), &config)?;
 
-    // Register Cmd+, (settings shortcut)
+    // Try to register shortcuts, but don't crash if they fail (common on Windows)
+    match register_shortcuts_inner(app.handle(), &config) {
+        Ok(()) => {
+            log::info!(
+                "Shortcuts registered: save={}, history={}",
+                config.save_clip,
+                config.show_history
+            );
+        }
+        Err(e) => {
+            log::warn!(
+                "Failed to register shortcuts ({}). Another app may be using these keys. \
+                 You can change shortcuts in Settings (gear icon).",
+                e
+            );
+            // Emit event so frontend can show a warning
+            let _ = app.handle().emit("shortcut-registration-failed", e.clone());
+        }
+    }
+
+    // Register Cmd+, (settings shortcut) - separate so it can succeed even if others fail
     let settings_shortcut: Shortcut = "CmdOrCtrl+,".parse()?;
-    app.global_shortcut().on_shortcut(
+    if let Err(e) = app.global_shortcut().on_shortcut(
         settings_shortcut,
         move |app_handle, _shortcut, event| {
             if event.state != ShortcutState::Pressed {
@@ -94,13 +117,10 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             }
             let _ = app_handle.emit("open-settings", ());
         },
-    )?;
+    ) {
+        log::warn!("Failed to register settings shortcut (Cmd+,): {}", e);
+    }
 
-    log::info!(
-        "Shortcuts registered: save={}, history={}",
-        config.save_clip,
-        config.show_history
-    );
     Ok(())
 }
 
@@ -203,8 +223,8 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = ShortcutConfig::default();
-        assert_eq!(config.save_clip, "CmdOrCtrl+Shift+C");
-        assert_eq!(config.show_history, "CmdOrCtrl+Shift+V");
+        assert_eq!(config.save_clip, "CmdOrCtrl+Alt+C");
+        assert_eq!(config.show_history, "CmdOrCtrl+Alt+V");
     }
 
     #[test]

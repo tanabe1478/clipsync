@@ -21,14 +21,16 @@
 
 | ショートカット | イベント | 動作 |
 |-------------|---------|------|
-| `CmdOrCtrl+Shift+C` | `save-clip` | クリップボード内容を Supabase に保存 |
-| `CmdOrCtrl+Shift+V` | `show-history` | HistoryPicker を表示 |
+| `CmdOrCtrl+Alt+C` | `save-clip` | クリップボード内容を Supabase に保存 |
+| `CmdOrCtrl+Alt+V` | `show-history` | HistoryPicker を表示 |
+
+> Note: Alt修飾キーを使用することで、Windowsの画面キャプチャツールやDevToolsとの競合を回避。
 
 登録: `lib.rs` の `register_hotkeys()` で `tauri_plugin_global_shortcut` を使用。
 
 ## 保存フロー
 
-1. ユーザーが `⌘+Shift+C` を押す
+1. ユーザーが `⌘+Alt+C` (Mac) / `Ctrl+Alt+C` (Windows) を押す
 2. Rust: `global_shortcut` → `emit("save-clip", ())`
 3. Frontend (App.tsx): `listen("save-clip")` でキャッチ
 4. `invoke("read_clipboard")` → クリップボードテキスト取得
@@ -39,7 +41,7 @@
 
 ## ペーストフロー
 
-1. ユーザーが `⌘+Shift+V` を押す
+1. ユーザーが `⌘+Alt+V` (Mac) / `Ctrl+Alt+V` (Windows) を押す
 2. Rust: `emit("show-history", ())`
 3. Frontend: `setShowHistory(true)` → HistoryPicker 表示
 4. ユーザーが候補を選択（矢印キー or クリック）
@@ -66,7 +68,7 @@
 - キーキャプチャ: `ShortcutRecorder` コンポーネントでキー入力を検出
 - 競合検出: 同一ショートカットの重複割り当てを拒否
 - 永続化先: `tauri-plugin-store` → アプリデータディレクトリの `shortcuts.json`
-- デフォルト: `CmdOrCtrl+Shift+C` (save), `CmdOrCtrl+Shift+V` (history)
+- デフォルト: `CmdOrCtrl+Alt+C` (save), `CmdOrCtrl+Alt+V` (history)
 
 ## プラグイン依存
 

@@ -70,10 +70,19 @@ function App() {
       setShowSettings(true);
     });
 
+    const unlistenShortcutFailed = listen<string>(
+      "shortcut-registration-failed",
+      (event) => {
+        logger.warn(`Shortcut registration failed: ${event.payload}`);
+        showToast("Shortcut conflict - check Settings");
+      },
+    );
+
     return () => {
       unlistenSave.then((fn) => fn());
       unlistenHistory.then((fn) => fn());
       unlistenSettings.then((fn) => fn());
+      unlistenShortcutFailed.then((fn) => fn());
     };
   }, [user, saveClip, showToast]);
 
