@@ -24,7 +24,11 @@ export function useRealtimeClips(
         },
         (payload: { eventType: string; new: Clip; old: { id: string } }) => {
           if (payload.eventType === "INSERT") {
-            setClips((prev) => [payload.new, ...prev]);
+            setClips((prev) => {
+              // Skip if already exists (local saveClip already added it)
+              if (prev.some((c) => c.id === payload.new.id)) return prev;
+              return [payload.new, ...prev];
+            });
           } else if (payload.eventType === "UPDATE") {
             setClips((prev) =>
               prev.map((c) => (c.id === payload.new.id ? payload.new : c)),

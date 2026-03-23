@@ -73,3 +73,11 @@ interface NewClip {
 - `setClips((prev) => [newClip, ...prev])` — 先頭追加
 - `setClips((prev) => prev.map(...))` — 更新
 - `setClips((prev) => prev.filter(...))` — 削除
+
+## Realtime 重複防止
+
+`saveClip` がローカル state に即座に追加し、その後 Supabase Realtime の INSERT イベントで同じクリップが再度到着する。`useRealtimeClips` の INSERT ハンドラで既存 ID をチェックし、重複をスキップする:
+
+```typescript
+if (prev.some((c) => c.id === payload.new.id)) return prev;
+```
