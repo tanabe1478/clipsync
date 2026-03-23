@@ -31,3 +31,12 @@ Thumbs.db
 
 # Playwright
 test-results/
+
+# Flutter
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/.env
