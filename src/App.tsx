@@ -85,6 +85,33 @@ function App() {
     [handleCopy],
   );
 
+  const handleTogglePin = useCallback(
+    async (clipId: string) => {
+      try {
+        await togglePin(clipId);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.error(`togglePin failed: ${msg}`);
+        showToast("Failed to toggle pin");
+      }
+    },
+    [togglePin, showToast],
+  );
+
+  const handleDelete = useCallback(
+    async (clipId: string) => {
+      try {
+        await deleteClip(clipId);
+        showToast("Clip deleted");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.error(`delete failed: ${msg}`);
+        showToast("Failed to delete clip");
+      }
+    },
+    [deleteClip, showToast],
+  );
+
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
@@ -104,8 +131,8 @@ function App() {
       <ClipList
         clips={clips}
         onCopy={handleCopy}
-        onTogglePin={togglePin}
-        onDelete={deleteClip}
+        onTogglePin={handleTogglePin}
+        onDelete={handleDelete}
       />
       {showHistory && (
         <HistoryPicker

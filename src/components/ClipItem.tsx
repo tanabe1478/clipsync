@@ -47,7 +47,7 @@ export function ClipItem({ clip, onCopy, onTogglePin, onDelete }: ClipItemProps)
           aria-label="Delete"
           title="Delete"
         >
-          \u{2715}
+          {"\u2715"}
         </button>
       </div>
     </div>
