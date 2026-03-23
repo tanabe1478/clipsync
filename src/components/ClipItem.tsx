@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 import type { Clip } from "../lib/types";
 
 interface ClipItemProps {
@@ -23,6 +24,24 @@ function timeAgo(dateStr: string): string {
 }
 
 export function ClipItem({ clip, onCopy, onTogglePin, onDelete }: ClipItemProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Auto-cancel confirmation after 3 seconds
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const timer = setTimeout(() => setConfirmDelete(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirmDelete]);
+
+  const handleDelete = useCallback(() => {
+    if (confirmDelete) {
+      onDelete(clip.id);
+      setConfirmDelete(false);
+    } else {
+      setConfirmDelete(true);
+    }
+  }, [confirmDelete, clip.id, onDelete]);
+
   return (
     <div className={`clip-item${clip.pinned ? " pinned" : ""}`}>
       <div className="clip-content" onClick={() => onCopy(clip)}>
@@ -42,12 +61,12 @@ export function ClipItem({ clip, onCopy, onTogglePin, onDelete }: ClipItemProps)
           {clip.pinned ? "\u{1F4CC}" : "\u{1F4CB}"}
         </button>
         <button
-          className="btn-ghost danger"
-          onClick={() => onDelete(clip.id)}
-          aria-label="Delete"
-          title="Delete"
+          className={`btn-ghost danger${confirmDelete ? " confirming" : ""}`}
+          onClick={handleDelete}
+          aria-label={confirmDelete ? "Confirm delete" : "Delete"}
+          title={confirmDelete ? "Click again to confirm" : "Delete"}
         >
-          {"\u2715"}
+          {confirmDelete ? "Delete?" : "\u2715"}
         </button>
       </div>
     </div>

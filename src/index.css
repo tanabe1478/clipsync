@@ -143,6 +143,14 @@ body {
   color: var(--danger);
 }
 
+.btn-ghost.danger.confirming {
+  color: var(--danger);
+  background: var(--bg-hover);
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 1;
+}
+
 .btn-ghost.pinned {
   color: var(--pin-color);
 }

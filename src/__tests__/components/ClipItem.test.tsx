@@ -53,12 +53,28 @@ describe("ClipItem", () => {
     expect(screen.getByRole("button", { name: /unpin/i })).toBeInTheDocument();
   });
 
-  it("calls onDelete when delete button is clicked", () => {
+  it("requires two clicks to delete (confirmation)", () => {
+    const onDelete = vi.fn();
+    render(
+      <ClipItem clip={mockClip} onCopy={vi.fn()} onTogglePin={vi.fn()} onDelete={onDelete} />,
+    );
+
+    // First click: enter confirmation state
+    fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+    expect(onDelete).not.toHaveBeenCalled();
+    expect(screen.getByText("Delete?")).toBeInTheDocument();
+
+    // Second click: confirm deletion
+    fireEvent.click(screen.getByRole("button", { name: /confirm delete/i }));
+    expect(onDelete).toHaveBeenCalledWith("1");
+  });
+
+  it("does not call onDelete on single click", () => {
     const onDelete = vi.fn();
     render(
       <ClipItem clip={mockClip} onCopy={vi.fn()} onTogglePin={vi.fn()} onDelete={onDelete} />,
     );
     fireEvent.click(screen.getByRole("button", { name: /delete/i }));
-    expect(onDelete).toHaveBeenCalledWith("1");
+    expect(onDelete).not.toHaveBeenCalled();
   });
 });
