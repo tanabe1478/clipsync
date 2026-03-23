@@ -23,5 +23,10 @@ Thumbs.db
 # Logs
 *.log
 
-# Claude
-.claude/
+# Claude (ignore all except hooks and settings.json)
+.claude/*
+!.claude/hooks/
+!.claude/settings.json
+
+# Playwright
+test-results/
