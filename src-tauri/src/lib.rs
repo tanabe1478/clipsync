@@ -24,8 +24,11 @@ pub fn run() {
             }
 
             // Register deep link scheme for OAuth callback
+            // register() fails in dev mode (non-bundled), so we log and continue
             #[cfg(desktop)]
-            app.deep_link().register("clipsync")?;
+            if let Err(e) = app.deep_link().register("clipsync") {
+                log::warn!("Deep link registration failed (expected in dev mode): {e}");
+            }
 
             // Listen for deep link events (OAuth callback)
             let handle = app.handle().clone();

@@ -1,2 +1,5 @@
-ignoredBuiltDependencies:
+enablePrePostScripts: true
+
+onlyBuiltDependencies:
   - esbuild
+  - supabase

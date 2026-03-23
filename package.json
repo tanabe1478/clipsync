@@ -10,7 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "db:migrate": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:studio": "supabase studio"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
@@ -30,6 +33,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^3.0.0",
     "jsdom": "^26.0.0",
+    "supabase": "^2.76.15",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vitest": "^3.0.0"
