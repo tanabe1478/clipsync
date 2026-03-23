@@ -172,6 +172,50 @@ describe("useClips", () => {
     expect(result.current.clips[0].id).toBe("2");
   });
 
+  it("skips duplicate content", async () => {
+    const existingClip: Clip = {
+      id: "10",
+      user_id: "user-1",
+      content: "Same content",
+      device_name: "MacBook",
+      pinned: false,
+      created_at: "2026-03-24T02:00:00Z",
+    };
+
+    mockInsert.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({
+          data: existingClip,
+          error: null,
+        }),
+      }),
+    });
+
+    const { result } = renderHook(() => useClips());
+
+    // First save
+    await act(async () => {
+      await result.current.saveClip({
+        content: "Same content",
+        device_name: "MacBook",
+      });
+    });
+
+    expect(result.current.clips).toHaveLength(1);
+
+    // Second save with same content — should return null, no insert
+    let saved: unknown;
+    await act(async () => {
+      saved = await result.current.saveClip({
+        content: "Same content",
+        device_name: "MacBook",
+      });
+    });
+
+    expect(saved).toBeNull();
+    expect(result.current.clips).toHaveLength(1);
+  });
+
   it("rejects empty content", async () => {
     const { result } = renderHook(() => useClips());
 

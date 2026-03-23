@@ -46,11 +46,15 @@ function App() {
         const content = await invoke<string>("read_clipboard");
         if (!content || content.trim() === "") return;
         const deviceName = await invoke<string>("get_device_name");
-        await saveClip({ content, device_name: deviceName });
-        logger.info(
-          `clip saved (${content.length} chars, device: ${deviceName})`,
-        );
-        showToast("Clip saved");
+        const saved = await saveClip({ content, device_name: deviceName });
+        if (saved) {
+          logger.info(
+            `clip saved (${content.length} chars, device: ${deviceName})`,
+          );
+          showToast("Clip saved");
+        } else {
+          logger.info("clip skipped (duplicate)");
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         logger.error(`save-clip failed: ${msg}`);

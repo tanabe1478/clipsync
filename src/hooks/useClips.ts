@@ -24,10 +24,15 @@ export function useClips() {
     return data ?? [];
   }, []);
 
-  const saveClip = useCallback(async (newClip: NewClip): Promise<Clip> => {
+  const saveClip = useCallback(async (newClip: NewClip): Promise<Clip | null> => {
     // Skip empty content
     if (!newClip.content || newClip.content.trim() === "") {
       throw new Error("Clip content is empty");
+    }
+
+    // Skip duplicate: if the most recent clip has the same content, don't save
+    if (clips.length > 0 && clips[0].content === newClip.content) {
+      return null;
     }
 
     // Truncate if too long
@@ -47,7 +52,7 @@ export function useClips() {
 
     setClips((prev) => [data, ...prev]);
     return data;
-  }, []);
+  }, [clips]);
 
   const togglePin = useCallback(async (clipId: string): Promise<Clip> => {
     const target = clips.find((c) => c.id === clipId);
