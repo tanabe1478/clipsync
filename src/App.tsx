@@ -45,6 +45,7 @@ function App() {
         if (!content || content.trim() === "") return;
         const deviceName = await invoke<string>("get_device_name");
         await saveClip({ content, device_name: deviceName });
+        logger.info(`clip saved (${content.length} chars, device: ${deviceName})`);
         showToast("Clip saved");
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -67,6 +68,7 @@ function App() {
     async (clip: Clip) => {
       try {
         await invoke("write_clipboard", { text: clip.content });
+        logger.info(`copied clip to clipboard (${clip.id})`);
         showToast("Copied to clipboard");
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -89,6 +91,7 @@ function App() {
     async (clipId: string) => {
       try {
         await togglePin(clipId);
+        logger.info(`toggled pin on clip (${clipId})`);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         logger.error(`togglePin failed: ${msg}`);
@@ -102,6 +105,7 @@ function App() {
     async (clipId: string) => {
       try {
         await deleteClip(clipId);
+        logger.info(`deleted clip (${clipId})`);
         showToast("Clip deleted");
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
