@@ -28,7 +28,7 @@ BASENAME=$(basename "$FILE_PATH")
 
 # Only trigger for .rs, .ts, .tsx, .sql files
 case "$BASENAME" in
-  *.rs|*.ts|*.tsx|*.sql) ;;
+  *.rs|*.ts|*.tsx|*.sql|*.dart) ;;
   *) echo "$INPUT"; exit 0 ;;
 esac
 

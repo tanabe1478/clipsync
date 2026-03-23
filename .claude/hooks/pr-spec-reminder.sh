@@ -11,7 +11,7 @@ if [ -z "$REPO_ROOT" ]; then
 fi
 
 # Get all source files changed since branching from main
-CHANGED=$(git diff --name-only main...HEAD 2>/dev/null | grep -E '\.(rs|ts|tsx|sql)$')
+CHANGED=$(git diff --name-only main...HEAD 2>/dev/null | grep -E '\.(rs|ts|tsx|sql|dart)$')
 if [ -z "$CHANGED" ]; then
   echo "$INPUT"
   exit 0

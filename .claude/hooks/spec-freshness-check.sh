@@ -17,9 +17,9 @@ if [ ! -d "$SPECS_DIR" ]; then
 fi
 
 # Get staged source files (.rs, .ts, .tsx, .sql)
-CHANGED=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null | grep -E '\.(rs|ts|tsx|sql)$')
+CHANGED=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null | grep -E '\.(rs|ts|tsx|sql|dart)$')
 if [ -z "$CHANGED" ]; then
-  CHANGED=$(git diff --name-only 2>/dev/null | grep -E '\.(rs|ts|tsx|sql)$')
+  CHANGED=$(git diff --name-only 2>/dev/null | grep -E '\.(rs|ts|tsx|sql|dart)$')
 fi
 if [ -z "$CHANGED" ]; then
   echo "$INPUT"
