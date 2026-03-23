@@ -7,15 +7,41 @@ import 'package:clipsync_mobile/features/clips/application/clips_notifier.dart';
 import 'package:clipsync_mobile/features/clips/application/realtime_clips.dart';
 import 'package:clipsync_mobile/features/clips/presentation/clip_list.dart';
 
-class ClipsScreen extends ConsumerWidget {
+class ClipsScreen extends ConsumerStatefulWidget {
   const ClipsScreen({super.key});
 
-  Future<void> _saveFromClipboard(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<ClipsScreen> createState() => _ClipsScreenState();
+}
+
+class _ClipsScreenState extends ConsumerState<ClipsScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Auto-refresh when app comes to foreground
+      ref.read(clipsNotifierProvider.notifier).refresh();
+    }
+  }
+
+  Future<void> _saveFromClipboard() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final text = data?.text;
 
     if (text == null || text.trim().isEmpty) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Clipboard is empty')),
         );
@@ -33,7 +59,7 @@ class ClipsScreen extends ConsumerWidget {
       deviceName: deviceName,
     );
 
-    if (context.mounted) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(clip != null ? 'Clip saved' : 'Duplicate skipped'),
@@ -44,7 +70,7 @@ class ClipsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // Activate Realtime subscription
     ref.watch(realtimeClipsProvider);
 
@@ -87,7 +113,7 @@ class ClipsScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _saveFromClipboard(context, ref),
+        onPressed: _saveFromClipboard,
         tooltip: 'Save clipboard',
         child: const Icon(Icons.content_paste_go),
       ),
