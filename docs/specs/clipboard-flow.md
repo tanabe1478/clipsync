@@ -1,6 +1,6 @@
 # Spec: Clipboard Flow
 
-> Trigger: commands.rs, lib.rs, App.tsx
+> Trigger: commands.rs, lib.rs, shortcuts.rs, App.tsx
 > Last updated: 2026-03-24
 
 ## 概要
@@ -52,9 +52,26 @@
 - **100KB 超**: `MAX_CONTENT_LENGTH = 100_000` で切り詰め
 - **連打**: 同一内容の重複保存は現在未対応（将来検討）
 
+## ショートカットカスタマイズ
+
+`shortcuts.rs` モジュールで管理。`tauri-plugin-store` で永続化。
+
+| コマンド | 機能 |
+|---------|------|
+| `get_shortcuts` | 現在のショートカット設定を取得 |
+| `update_shortcut` | 指定アクションのショートカットを変更（検証 + 再登録 + 永続化） |
+| `reset_shortcuts` | デフォルトにリセット |
+
+- 設定画面: `⌘+,` またはヘッダーの歯車アイコンで開く
+- キーキャプチャ: `ShortcutRecorder` コンポーネントでキー入力を検出
+- 競合検出: 同一ショートカットの重複割り当てを拒否
+- 永続化先: `tauri-plugin-store` → アプリデータディレクトリの `shortcuts.json`
+- デフォルト: `CmdOrCtrl+Shift+C` (save), `CmdOrCtrl+Shift+V` (history)
+
 ## プラグイン依存
 
 - `tauri-plugin-clipboard-manager`: クリップボード R/W
 - `tauri-plugin-global-shortcut`: ホットキー登録
 - `tauri-plugin-shell`: ブラウザ URL オープン
 - `tauri-plugin-deep-link`: OAuth コールバック（release モード）
+- `tauri-plugin-store`: ショートカット設定永続化

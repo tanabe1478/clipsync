@@ -314,6 +314,83 @@ body {
   margin-top: 2px;
 }
 
+/* Settings Panel */
+.settings-panel {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  width: 360px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  animation: slideUp 0.15s ease;
+}
+
+.settings-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-body {
+  padding: 16px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.shortcut-recorder {
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-primary);
+  min-width: 120px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.shortcut-recorder:hover {
+  border-color: var(--accent);
+}
+
+.shortcut-recorder.recording {
+  border-color: var(--accent);
+  background: var(--bg-selected);
+  color: var(--accent);
+  animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.settings-footer {
+  padding-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
 /* Loading */
 .loading-screen {
   display: flex;

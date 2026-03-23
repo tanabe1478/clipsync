@@ -1,6 +1,6 @@
 # Spec: UI Components
 
-> Trigger: AuthScreen.tsx, ClipList.tsx, ClipItem.tsx, HistoryPicker.tsx, App.tsx, index.css
+> Trigger: AuthScreen.tsx, ClipList.tsx, ClipItem.tsx, HistoryPicker.tsx, SettingsPanel.tsx, ShortcutRecorder.tsx, App.tsx, index.css
 > Last updated: 2026-03-24
 
 ## 概要
@@ -18,6 +18,8 @@ App
     ├── ClipList
     │   └── ClipItem × N
     ├── HistoryPicker (⌘⇧V で表示)
+    ├── SettingsPanel (⌘, で表示)
+    │   └── ShortcutRecorder × 2
     └── Toast (操作フィードバック)
 ```
 
@@ -45,6 +47,20 @@ App
 - モーダルオーバーレイ（背景クリックで閉じる）
 - キーボード操作: ↑↓ で巡回、Enter で選択、Escape で閉じる
 - `⌘⇧V` 連打でも次の候補に移動
+
+### SettingsPanel
+- Props: `onClose`, `showToast`
+- モーダルオーバーレイ（HistoryPicker と同じパターン）
+- `⌘+,` またはヘッダーの歯車アイコンで開く
+- `useShortcuts` フックで Rust 側の設定を読み書き
+- 「Reset to Defaults」ボタン
+
+### ShortcutRecorder
+- Props: `label`, `currentShortcut`, `onRecord`
+- クリックで録音モード（「Press keys...」表示、パルスアニメーション）
+- キー入力を `keyEventToShortcutString()` で Tauri 形式に変換
+- Escape でキャンセル、修飾キーのみは無視
+- `shortcutKeys.ts`: キーイベント → ショートカット文字列変換ユーティリティ
 
 ### Toast (useToast)
 - 1800ms で自動消滅

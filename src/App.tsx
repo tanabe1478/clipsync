@@ -7,6 +7,7 @@ import { useRealtimeClips } from "./hooks/useRealtimeClips";
 import { AuthScreen } from "./components/AuthScreen";
 import { ClipList } from "./components/ClipList";
 import { HistoryPicker } from "./components/HistoryPicker";
+import { SettingsPanel } from "./components/SettingsPanel";
 import type { Clip } from "./lib/types";
 import { logger } from "./lib/logger";
 import "./index.css";
@@ -27,6 +28,7 @@ function App() {
   const { clips, setClips, fetchClips, saveClip, togglePin, deleteClip } =
     useClips();
   const [showHistory, setShowHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { message: toast, showToast } = useToast();
 
   useRealtimeClips(user?.id, clips, setClips);
@@ -45,7 +47,9 @@ function App() {
         if (!content || content.trim() === "") return;
         const deviceName = await invoke<string>("get_device_name");
         await saveClip({ content, device_name: deviceName });
-        logger.info(`clip saved (${content.length} chars, device: ${deviceName})`);
+        logger.info(
+          `clip saved (${content.length} chars, device: ${deviceName})`,
+        );
         showToast("Clip saved");
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -58,9 +62,14 @@ function App() {
       setShowHistory(true);
     });
 
+    const unlistenSettings = listen("open-settings", () => {
+      setShowSettings(true);
+    });
+
     return () => {
       unlistenSave.then((fn) => fn());
       unlistenHistory.then((fn) => fn());
+      unlistenSettings.then((fn) => fn());
     };
   }, [user, saveClip, showToast]);
 
@@ -128,9 +137,19 @@ function App() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <header className="app-header">
         <h2>ClipSync</h2>
-        <button className="btn" onClick={signOut}>
-          Sign out
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn-ghost"
+            onClick={() => setShowSettings(true)}
+            title="Settings (Cmd+,)"
+            aria-label="Settings"
+          >
+            {"\u2699"}
+          </button>
+          <button className="btn" onClick={signOut}>
+            Sign out
+          </button>
+        </div>
       </header>
       <ClipList
         clips={clips}
@@ -143,6 +162,12 @@ function App() {
           clips={clips}
           onSelect={handleSelectFromHistory}
           onDismiss={() => setShowHistory(false)}
+        />
+      )}
+      {showSettings && (
+        <SettingsPanel
+          onClose={() => setShowSettings(false)}
+          showToast={showToast}
         />
       )}
       {toast && <div className="toast">{toast}</div>}
