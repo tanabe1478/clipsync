@@ -26,6 +26,7 @@ Thumbs.db
 # Claude (ignore all except hooks and settings.json)
 .claude/*
 !.claude/hooks/
+!.claude/skills/
 !.claude/settings.json
 
 # Playwright
