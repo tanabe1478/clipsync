@@ -1,0 +1,3 @@
+[submodule ".claude/skills/mad-agents-skills"]
+	path = .claude/skills/mad-agents-skills
+	url = https://github.com/madteacher/mad-agents-skills
