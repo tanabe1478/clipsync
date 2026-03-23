@@ -37,7 +37,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
   Future<void> signInWithGoogle() async {
     await _auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: 'com.clipsync.app://auth/callback',
+      redirectTo: 'com.clipsync.clipsync-mobile://auth/callback',
     );
   }
 
