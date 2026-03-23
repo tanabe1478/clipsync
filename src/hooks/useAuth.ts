@@ -64,11 +64,15 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    // Get redirect URL from Rust (localhost in dev, clipsync:// in release)
+    const { invoke } = await import("@tauri-apps/api/core");
+    const redirectTo = await invoke<string>("get_auth_redirect_url");
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         skipBrowserRedirect: true,
-        redirectTo: "clipsync://auth/callback",
+        redirectTo,
       },
     });
 

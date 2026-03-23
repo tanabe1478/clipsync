@@ -26,6 +26,10 @@ vi.mock("@tauri-apps/api/event", () => ({
   listen: vi.fn().mockResolvedValue(vi.fn()),
 }));
 
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: vi.fn().mockResolvedValue("http://localhost:54321/auth/callback"),
+}));
+
 describe("extractTokensFromUrl", () => {
   it("extracts tokens from a valid deep link URL", () => {
     const url =
@@ -113,7 +117,7 @@ describe("useAuth", () => {
       provider: "google",
       options: {
         skipBrowserRedirect: true,
-        redirectTo: "clipsync://auth/callback",
+        redirectTo: "http://localhost:54321/auth/callback",
       },
     });
   });

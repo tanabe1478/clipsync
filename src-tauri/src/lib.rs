@@ -1,11 +1,23 @@
 #![deny(clippy::all)]
 
+mod auth_server;
 mod commands;
 
 use commands::{get_device_name, read_clipboard, write_clipboard};
 use tauri::Emitter;
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+
+/// Returns the OAuth redirect URL based on build mode.
+/// Dev mode: localhost HTTP server. Release: custom URL scheme.
+#[tauri::command]
+fn get_auth_redirect_url() -> String {
+    if cfg!(debug_assertions) {
+        auth_server::redirect_url()
+    } else {
+        "clipsync://auth/callback".to_string()
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -21,16 +33,18 @@ pub fn run() {
                         .level(log::LevelFilter::Info)
                         .build(),
                 )?;
+
+                // Start local HTTP server for OAuth callback in dev mode
+                auth_server::start(app.handle().clone());
             }
 
-            // Register deep link scheme for OAuth callback
-            // register() fails in dev mode (non-bundled), so we log and continue
+            // Register deep link scheme for OAuth callback (release mode only)
             #[cfg(desktop)]
             if let Err(e) = app.deep_link().register("clipsync") {
                 log::warn!("Deep link registration failed (expected in dev mode): {e}");
             }
 
-            // Listen for deep link events (OAuth callback)
+            // Listen for deep link events (OAuth callback) - release mode
             let handle = app.handle().clone();
             app.deep_link().on_open_url(move |event| {
                 if let Some(url) = event.urls().first() {
@@ -48,6 +62,7 @@ pub fn run() {
             get_device_name,
             read_clipboard,
             write_clipboard,
+            get_auth_redirect_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
