@@ -3,7 +3,7 @@
 mod auth_server;
 mod commands;
 
-use commands::{get_device_name, read_clipboard, write_clipboard};
+use commands::{get_device_name, log_from_frontend, read_clipboard, write_clipboard};
 use tauri::Emitter;
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
@@ -63,6 +63,7 @@ pub fn run() {
             read_clipboard,
             write_clipboard,
             get_auth_redirect_url,
+            log_from_frontend,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

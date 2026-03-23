@@ -8,6 +8,7 @@ import { AuthScreen } from "./components/AuthScreen";
 import { ClipList } from "./components/ClipList";
 import { HistoryPicker } from "./components/HistoryPicker";
 import type { Clip } from "./lib/types";
+import { logger } from "./lib/logger";
 import "./index.css";
 
 function useToast() {
@@ -45,7 +46,9 @@ function App() {
         const deviceName = await invoke<string>("get_device_name");
         await saveClip({ content, device_name: deviceName });
         showToast("Clip saved");
-      } catch (_err) {
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.error(`save-clip failed: ${msg}`);
         showToast("Failed to save clip");
       }
     });
@@ -65,7 +68,9 @@ function App() {
       try {
         await invoke("write_clipboard", { text: clip.content });
         showToast("Copied to clipboard");
-      } catch (_err) {
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.error(`copy failed: ${msg}`);
         showToast("Failed to copy");
       }
     },

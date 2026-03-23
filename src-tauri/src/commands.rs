@@ -1,6 +1,15 @@
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
 #[tauri::command]
+pub fn log_from_frontend(level: String, message: String) {
+    match level.as_str() {
+        "error" => log::error!("[frontend] {message}"),
+        "warn" => log::warn!("[frontend] {message}"),
+        _ => log::info!("[frontend] {message}"),
+    }
+}
+
+#[tauri::command]
 pub fn get_device_name() -> String {
     hostname::get()
         .map(|name| name.to_string_lossy().into_owned())
