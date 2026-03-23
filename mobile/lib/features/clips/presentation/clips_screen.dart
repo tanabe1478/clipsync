@@ -1,13 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clipsync_mobile/features/auth/application/auth_notifier.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:clipsync_mobile/features/clips/application/clips_notifier.dart';
 import 'package:clipsync_mobile/features/clips/application/realtime_clips.dart';
 import 'package:clipsync_mobile/features/clips/presentation/clip_list.dart';
 
 class ClipsScreen extends ConsumerWidget {
   const ClipsScreen({super.key});
+
+  Future<void> _saveFromClipboard(BuildContext context, WidgetRef ref) async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+
+    if (text == null || text.trim().isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Clipboard is empty')),
+        );
+      }
+      return;
+    }
+
+    final deviceInfo = DeviceInfoPlugin();
+    final androidInfo = await deviceInfo.androidInfo;
+    final deviceName = androidInfo.model;
+
+    final notifier = ref.read(clipsNotifierProvider.notifier);
+    final clip = await notifier.saveClip(
+      content: text,
+      deviceName: deviceName,
+    );
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(clip != null ? 'Clip saved' : 'Duplicate skipped'),
+          duration: const Duration(milliseconds: 1500),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,6 +85,11 @@ class ClipsScreen extends ConsumerWidget {
             onDelete: (clipId) => notifier.deleteClip(clipId),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _saveFromClipboard(context, ref),
+        tooltip: 'Save clipboard',
+        child: const Icon(Icons.content_paste_go),
       ),
     );
   }
