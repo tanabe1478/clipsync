@@ -11,6 +11,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "tauri": "tauri",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "db:migrate": "supabase db push",
     "db:reset": "supabase db reset",
     "db:studio": "supabase studio"
@@ -25,6 +27,7 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
     "@types/node": "^24.10.1",
