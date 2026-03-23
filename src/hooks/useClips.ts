@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import type { Clip, NewClip } from "../lib/types";
 
 const DEFAULT_LIMIT = 50;
+const MAX_CONTENT_LENGTH = 100_000; // 100KB limit
 
 export function useClips() {
   const [clips, setClips] = useState<readonly Clip[]>([]);
@@ -24,9 +25,19 @@ export function useClips() {
   }, []);
 
   const saveClip = useCallback(async (newClip: NewClip): Promise<Clip> => {
+    // Skip empty content
+    if (!newClip.content || newClip.content.trim() === "") {
+      throw new Error("Clip content is empty");
+    }
+
+    // Truncate if too long
+    const truncatedClip: NewClip = newClip.content.length > MAX_CONTENT_LENGTH
+      ? { ...newClip, content: newClip.content.slice(0, MAX_CONTENT_LENGTH) }
+      : newClip;
+
     const { data, error } = await supabase
       .from("clips")
-      .insert(newClip)
+      .insert(truncatedClip)
       .select()
       .single();
 

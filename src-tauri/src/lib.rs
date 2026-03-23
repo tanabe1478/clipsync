@@ -4,6 +4,7 @@ mod commands;
 
 use commands::{get_device_name, read_clipboard, write_clipboard};
 use tauri::Emitter;
+use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -21,6 +22,20 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
+            // Register deep link scheme for OAuth callback
+            #[cfg(desktop)]
+            app.deep_link().register("clipsync")?;
+
+            // Listen for deep link events (OAuth callback)
+            let handle = app.handle().clone();
+            app.deep_link().on_open_url(move |event| {
+                if let Some(url) = event.urls().first() {
+                    let url_str = url.to_string();
+                    log::info!("Deep link received: {}", url_str);
+                    let _ = handle.emit("deep-link-auth", url_str);
+                }
+            });
 
             register_hotkeys(app)?;
 

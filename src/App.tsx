@@ -8,11 +8,25 @@ import { AuthScreen } from "./components/AuthScreen";
 import { ClipList } from "./components/ClipList";
 import { HistoryPicker } from "./components/HistoryPicker";
 import type { Clip } from "./lib/types";
+import "./index.css";
+
+function useToast() {
+  const [message, setMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(null), 1800);
+  }, []);
+
+  return { message, showToast };
+}
 
 function App() {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
-  const { clips, setClips, fetchClips, saveClip, togglePin, deleteClip } = useClips();
+  const { clips, setClips, fetchClips, saveClip, togglePin, deleteClip } =
+    useClips();
   const [showHistory, setShowHistory] = useState(false);
+  const { message: toast, showToast } = useToast();
 
   useRealtimeClips(user?.id, clips, setClips);
 
@@ -27,11 +41,12 @@ function App() {
       if (!user) return;
       try {
         const content = await invoke<string>("read_clipboard");
-        if (!content) return;
+        if (!content || content.trim() === "") return;
         const deviceName = await invoke<string>("get_device_name");
         await saveClip({ content, device_name: deviceName });
-      } catch (err) {
-        // Silently fail for now
+        showToast("Clip saved");
+      } catch (_err) {
+        showToast("Failed to save clip");
       }
     });
 
@@ -43,27 +58,30 @@ function App() {
       unlistenSave.then((fn) => fn());
       unlistenHistory.then((fn) => fn());
     };
-  }, [user, saveClip]);
+  }, [user, saveClip, showToast]);
 
-  const handleCopy = useCallback(async (clip: Clip) => {
-    try {
-      await invoke("write_clipboard", { text: clip.content });
-    } catch (err) {
-      // Silently fail for now
-    }
-  }, []);
+  const handleCopy = useCallback(
+    async (clip: Clip) => {
+      try {
+        await invoke("write_clipboard", { text: clip.content });
+        showToast("Copied to clipboard");
+      } catch (_err) {
+        showToast("Failed to copy");
+      }
+    },
+    [showToast],
+  );
 
-  const handleSelectFromHistory = useCallback(async (clip: Clip) => {
-    await handleCopy(clip);
-    setShowHistory(false);
-  }, [handleCopy]);
+  const handleSelectFromHistory = useCallback(
+    async (clip: Clip) => {
+      await handleCopy(clip);
+      setShowHistory(false);
+    },
+    [handleCopy],
+  );
 
   if (loading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        Loading...
-      </div>
-    );
+    return <div className="loading-screen">Loading...</div>;
   }
 
   if (!user) {
@@ -72,13 +90,18 @@ function App() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <header style={{ padding: "12px 16px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0, fontSize: 18 }}>ClipSync</h2>
-        <button onClick={signOut} style={{ background: "none", border: "1px solid #ccc", borderRadius: 6, padding: "4px 12px", cursor: "pointer" }}>
+      <header className="app-header">
+        <h2>ClipSync</h2>
+        <button className="btn" onClick={signOut}>
           Sign out
         </button>
       </header>
-      <ClipList clips={clips} onCopy={handleCopy} onTogglePin={togglePin} onDelete={deleteClip} />
+      <ClipList
+        clips={clips}
+        onCopy={handleCopy}
+        onTogglePin={togglePin}
+        onDelete={deleteClip}
+      />
       {showHistory && (
         <HistoryPicker
           clips={clips}
@@ -86,6 +109,7 @@ function App() {
           onDismiss={() => setShowHistory(false)}
         />
       )}
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

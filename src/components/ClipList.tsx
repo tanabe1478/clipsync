@@ -11,14 +11,18 @@ interface ClipListProps {
 export function ClipList({ clips, onCopy, onTogglePin, onDelete }: ClipListProps) {
   if (clips.length === 0) {
     return (
-      <div style={{ padding: 24, textAlign: "center", color: "#888" }}>
-        No clips yet. Use Cmd+Shift+C to save a clip.
+      <div className="clip-list-empty">
+        <p>No clips yet</p>
+        <p>
+          Press <span className="shortcut">{"\u2318"}+Shift+C</span> to save a
+          clip
+        </p>
       </div>
     );
   }
 
   return (
-    <div style={{ overflowY: "auto", flex: 1 }}>
+    <div className="clip-list">
       {clips.map((clip) => (
         <ClipItem
           key={clip.id}

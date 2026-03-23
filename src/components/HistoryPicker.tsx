@@ -39,49 +39,17 @@ export function HistoryPicker({ clips, onSelect, onDismiss }: HistoryPickerProps
   if (clips.length === 0) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-      onClick={onDismiss}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          width: 360,
-          maxHeight: 400,
-          overflowY: "auto",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ padding: "12px 16px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-          Clipboard History
-        </div>
+    <div className="history-overlay" onClick={onDismiss}>
+      <div className="history-picker" onClick={(e) => e.stopPropagation()}>
+        <div className="history-picker-header">Clipboard History</div>
         {clips.map((clip, index) => (
           <div
             key={clip.id}
+            className={`history-item${index === selectedIndex ? " selected" : ""}`}
             onClick={() => onSelect(clip)}
-            style={{
-              padding: "10px 16px",
-              cursor: "pointer",
-              background: index === selectedIndex ? "#e8f0fe" : "transparent",
-              borderBottom: "1px solid #f0f0f0",
-            }}
           >
-            <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "monospace", fontSize: 13 }}>
-              {clip.content}
-            </div>
-            <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>
-              {clip.device_name}
-            </div>
+            <div className="history-item-text">{clip.content}</div>
+            <div className="history-item-meta">{clip.device_name}</div>
           </div>
         ))}
       </div>

@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useClips } from "../hooks/useClips";
 import type { Clip } from "../lib/types";
@@ -170,5 +170,18 @@ describe("useClips", () => {
 
     expect(result.current.clips).toHaveLength(1);
     expect(result.current.clips[0].id).toBe("2");
+  });
+
+  it("rejects empty content", async () => {
+    const { result } = renderHook(() => useClips());
+
+    await expect(
+      act(async () => {
+        await result.current.saveClip({
+          content: "   ",
+          device_name: "MacBook",
+        });
+      }),
+    ).rejects.toThrow("Clip content is empty");
   });
 });

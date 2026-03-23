@@ -7,39 +7,47 @@ interface ClipItemProps {
   readonly onDelete: (clipId: string) => void;
 }
 
-function formatTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleString();
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export function ClipItem({ clip, onCopy, onTogglePin, onDelete }: ClipItemProps) {
   return (
-    <div style={{ padding: 12, borderBottom: "1px solid #eee", display: "flex", gap: 8 }}>
-      <div
-        style={{ flex: 1, cursor: "pointer", overflow: "hidden" }}
-        onClick={() => onCopy(clip)}
-      >
-        <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "monospace" }}>
-          {clip.content}
-        </div>
-        <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>
-          {clip.device_name} · {formatTime(clip.created_at)}
+    <div className={`clip-item${clip.pinned ? " pinned" : ""}`}>
+      <div className="clip-content" onClick={() => onCopy(clip)}>
+        <div className="clip-text">{clip.content}</div>
+        <div className="clip-meta">
+          <span>{clip.device_name}</span>
+          <span>{timeAgo(clip.created_at)}</span>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 4, alignItems: "flex-start" }}>
+      <div className="clip-actions">
         <button
+          className={`btn-ghost${clip.pinned ? " pinned" : ""}`}
           onClick={() => onTogglePin(clip.id)}
           aria-label={clip.pinned ? "Unpin" : "Pin"}
-          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16 }}
+          title={clip.pinned ? "Unpin" : "Pin"}
         >
           {clip.pinned ? "\u{1F4CC}" : "\u{1F4CB}"}
         </button>
         <button
+          className="btn-ghost danger"
           onClick={() => onDelete(clip.id)}
           aria-label="Delete"
-          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16 }}
+          title="Delete"
         >
-          {"\u{1F5D1}"}
+          \u{2715}
         </button>
       </div>
     </div>
