@@ -1,0 +1,120 @@
+:root {
+  --picker-bg: rgba(30, 30, 30, 0.85);
+  --picker-border: rgba(255, 255, 255, 0.1);
+  --picker-text: #e5e5e5;
+  --picker-muted: #888;
+  --picker-selected: rgba(59, 130, 246, 0.3);
+  --picker-input-bg: rgba(255, 255, 255, 0.08);
+  --picker-radius: 12px;
+  --picker-font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --picker-bg: rgba(255, 255, 255, 0.88);
+    --picker-border: rgba(0, 0, 0, 0.1);
+    --picker-text: #1a1a1a;
+    --picker-muted: #6b7280;
+    --picker-selected: rgba(59, 130, 246, 0.15);
+    --picker-input-bg: rgba(0, 0, 0, 0.04);
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--picker-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.picker-container {
+  background: var(--picker-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--picker-border);
+  border-radius: var(--picker-radius);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  animation: pickerIn 0.12s ease;
+}
+
+@keyframes pickerIn {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.picker-search {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--picker-border);
+}
+
+.picker-search input {
+  width: 100%;
+  background: var(--picker-input-bg);
+  border: none;
+  outline: none;
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--picker-text);
+}
+
+.picker-search input::placeholder {
+  color: var(--picker-muted);
+}
+
+.picker-results {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.picker-results::-webkit-scrollbar {
+  width: 4px;
+}
+
+.picker-results::-webkit-scrollbar-thumb {
+  background: var(--picker-muted);
+  border-radius: 2px;
+}
+
+.picker-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--picker-border);
+  transition: background 0.06s ease;
+}
+
+.picker-item:last-child {
+  border-bottom: none;
+}
+
+.picker-item.selected {
+  background: var(--picker-selected);
+}
+
+.picker-item-text {
+  font-family: var(--picker-font-mono);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.picker-item-meta {
+  font-size: 11px;
+  color: var(--picker-muted);
+  margin-top: 2px;
+}
+
+.picker-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--picker-muted);
+  font-size: 13px;
+}

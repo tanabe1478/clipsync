@@ -69,6 +69,9 @@ fn register_shortcuts_inner(
                     let _ = app_handle.emit("save-clip", ());
                 } else if shortcut == &show_shortcut {
                     let _ = app_handle.emit("show-history", ());
+                    if let Err(e) = crate::picker::show_picker(app_handle) {
+                        log::error!("Failed to show picker: {e}");
+                    }
                 }
             },
         )

@@ -2,9 +2,11 @@
 
 mod auth_server;
 mod commands;
+mod picker;
 mod shortcuts;
 
 use commands::{get_device_name, log_from_frontend, read_clipboard, write_clipboard};
+use picker::{hide_picker_window, paste_from_picker};
 use shortcuts::{get_shortcuts, reset_shortcuts, update_shortcut};
 use tauri::Emitter;
 use tauri_plugin_deep_link::DeepLinkExt;
@@ -65,6 +67,8 @@ pub fn run() {
             get_shortcuts,
             update_shortcut,
             reset_shortcuts,
+            hide_picker_window,
+            paste_from_picker,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

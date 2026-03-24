@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emit } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuth } from "./hooks/useAuth";
 import { useClips } from "./hooks/useClips";
@@ -78,13 +78,19 @@ function App() {
       },
     );
 
+    // Push clips to picker window when requested
+    const unlistenRequestClips = listen("request-clips", () => {
+      emit("clips-for-picker", clips);
+    });
+
     return () => {
       unlistenSave.then((fn) => fn());
       unlistenHistory.then((fn) => fn());
       unlistenSettings.then((fn) => fn());
       unlistenShortcutFailed.then((fn) => fn());
+      unlistenRequestClips.then((fn) => fn());
     };
-  }, [user, saveClip, showToast]);
+  }, [user, saveClip, showToast, clips]);
 
   const handleCopy = useCallback(
     async (clip: Clip) => {
