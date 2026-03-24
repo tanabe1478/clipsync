@@ -63,11 +63,13 @@ pub fn paste_from_picker(app: tauri::AppHandle, text: String) -> Result<(), Stri
         let _ = window.hide();
     }
 
-    // Simulate Cmd+V / Ctrl+V after a short delay for focus to return
+    // Simulate Cmd+V / Ctrl+V after delay for focus to return to previous app
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(100));
-        if let Err(e) = simulate_paste() {
-            log::error!("simulate_paste failed: {e}");
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        log::info!("Attempting paste simulation...");
+        match simulate_paste() {
+            Ok(()) => log::info!("Paste simulation completed"),
+            Err(e) => log::error!("simulate_paste failed: {e}"),
         }
     });
 

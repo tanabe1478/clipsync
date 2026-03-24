@@ -6,7 +6,6 @@ import { useClips } from "./hooks/useClips";
 import { useRealtimeClips } from "./hooks/useRealtimeClips";
 import { AuthScreen } from "./components/AuthScreen";
 import { ClipList } from "./components/ClipList";
-import { HistoryPicker } from "./components/HistoryPicker";
 import { SettingsPanel } from "./components/SettingsPanel";
 import type { Clip } from "./lib/types";
 import { logger } from "./lib/logger";
@@ -27,7 +26,6 @@ function App() {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
   const { clips, setClips, fetchClips, saveClip, togglePin, deleteClip } =
     useClips();
-  const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const { message: toast, showToast } = useToast();
 
@@ -62,8 +60,10 @@ function App() {
       }
     });
 
+    // show-history now opens the floating picker window (Rust side)
+    // Keep listener only for cross-window clip data push
     const unlistenHistory = listen("show-history", () => {
-      setShowHistory(true);
+      // No longer show in-app overlay — picker window handles this
     });
 
     const unlistenSettings = listen("open-settings", () => {
@@ -105,14 +105,6 @@ function App() {
       }
     },
     [showToast],
-  );
-
-  const handleSelectFromHistory = useCallback(
-    async (clip: Clip) => {
-      await handleCopy(clip);
-      setShowHistory(false);
-    },
-    [handleCopy],
   );
 
   const handleTogglePin = useCallback(
@@ -176,13 +168,6 @@ function App() {
         onTogglePin={handleTogglePin}
         onDelete={handleDelete}
       />
-      {showHistory && (
-        <HistoryPicker
-          clips={clips}
-          onSelect={handleSelectFromHistory}
-          onDismiss={() => setShowHistory(false)}
-        />
-      )}
       {showSettings && (
         <SettingsPanel
           onClose={() => setShowSettings(false)}
