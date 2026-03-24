@@ -27,4 +27,9 @@ tauri-plugin-deep-link = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-store = "2"
 hostname = "0.4"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.24"
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
 enigo = "0.3"

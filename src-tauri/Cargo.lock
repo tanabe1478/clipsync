@@ -471,6 +471,7 @@ dependencies = [
 name = "clipsync"
 version = "0.1.0"
 dependencies = [
+ "core-graphics 0.24.0",
  "enigo",
  "hostname",
  "log",
