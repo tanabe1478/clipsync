@@ -59,17 +59,31 @@ pub fn paste_from_picker(app: tauri::AppHandle, text: String) -> Result<(), Stri
         .write_text(&text)
         .map_err(|e| format!("clipboard write failed: {e}"))?;
 
+    // Hide picker window
     if let Some(window) = app.get_webview_window(PICKER_LABEL) {
         let _ = window.hide();
     }
 
+    // Also hide main window so macOS returns focus to the previous app
+    // (otherwise macOS activates the main window when picker hides)
+    if let Some(main_window) = app.get_webview_window("main") {
+        let _ = main_window.hide();
+    }
+
     // Simulate Cmd+V / Ctrl+V after delay for focus to return to previous app
+    let app_for_restore = app.clone();
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(200));
+        std::thread::sleep(std::time::Duration::from_millis(250));
         log::info!("Attempting paste simulation...");
         match simulate_paste() {
             Ok(()) => log::info!("Paste simulation completed"),
             Err(e) => log::error!("simulate_paste failed: {e}"),
+        }
+
+        // Re-show main window after paste (but don't focus it)
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        if let Some(main_window) = app_for_restore.get_webview_window("main") {
+            let _ = main_window.show();
         }
     });
 
