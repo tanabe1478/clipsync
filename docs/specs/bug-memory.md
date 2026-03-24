@@ -59,6 +59,14 @@
 - **修正**: Raycast/Alfred 方式を採用。ピッカー表示前に NSWorkspace で前のアプリの PID を記録し、選択後に NSRunningApplication で明示的に activate
 - **教訓**: macOS でフローティングウィンドウから前のアプリに戻すには、個別ウィンドウの hide ではなくアプリレベルの activate が必要
 
+### BUG-007: ピッカーを Esc で閉じるとメインウィンドウがチラつく
+
+- **発見日**: 2026-03-24
+- **影響**: ピッカーを Esc で閉じた時、またはクリップ選択時に ClipSync メインウィンドウが一瞬表示される
+- **原因**: ピッカーを hide すると macOS が同一アプリの次のウィンドウ（メインウィンドウ）にフォーカスを渡す。`activate_previous_app()` で前のアプリに戻る前の一瞬メインウィンドウが見える
+- **修正**: ピッカーを hide する前にメインウィンドウも hide し、前アプリを activate した後にメインウィンドウをバックグラウンドで復元する。`hide_picker_window` と `paste_from_picker` の両方に適用
+- **教訓**: macOS でウィンドウを hide する際、同一アプリの別ウィンドウが前面に出るのを防ぐには、先にそのウィンドウも hide しておく必要がある
+
 ## パターン集
 
 ### パターン: macOS でのキーボードシミュレーション
@@ -75,8 +83,10 @@ key_down.post(CGEventTapLocation::HID);
 
 フローティングピッカーから前のアプリに戻る:
 1. 表示前: `NSWorkspace::sharedWorkspace().frontmostApplication()` で PID を記録
-2. 選択後: `NSRunningApplication::runningApplicationWithProcessIdentifier(pid).activate()`
-3. 待機後: CGEvent でキーシミュレート
+2. 選択後/Esc: メインウィンドウを hide → ピッカーを hide → `NSRunningApplication.activate()` → メインウィンドウを復元
+3. (ペースト時のみ) 150ms 待機後: CGEvent でキーシミュレート
+
+**重要**: ピッカーを hide する前にメインウィンドウも hide しないと、macOS がメインウィンドウを一瞬前面に出してチラつく（BUG-007）
 
 ### パターン: Tauri プラグインの dev モード対応
 

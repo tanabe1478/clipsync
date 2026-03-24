@@ -96,9 +96,24 @@ pub fn show_picker(app: &tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub fn hide_picker_window(app: tauri::AppHandle) -> Result<(), String> {
+    // Hide main window first to prevent it from flashing when picker is dismissed
+    let main_window = app.get_webview_window("main");
+    if let Some(ref w) = main_window {
+        let _ = w.hide();
+    }
+
     if let Some(window) = app.get_webview_window(PICKER_LABEL) {
         window.hide().map_err(|e| format!("hide failed: {e}"))?;
     }
+
+    // Return focus to the previous app
+    activate_previous_app();
+
+    // Restore main window visibility (hidden from taskbar, still accessible)
+    if let Some(ref w) = main_window {
+        let _ = w.show();
+    }
+
     Ok(())
 }
 
@@ -109,15 +124,23 @@ pub fn paste_from_picker(app: tauri::AppHandle, text: String) -> Result<(), Stri
         .write_text(&text)
         .map_err(|e| format!("clipboard write failed: {e}"))?;
 
-    // 2. Hide picker window
+    // 2. Hide main window to prevent flash, then hide picker
+    let main_window = app.get_webview_window("main");
+    if let Some(ref w) = main_window {
+        let _ = w.hide();
+    }
     if let Some(window) = app.get_webview_window(PICKER_LABEL) {
         let _ = window.hide();
     }
 
     // 3. Activate previous app, then simulate paste
     std::thread::spawn(move || {
-        // Activate the app that was focused before the picker opened
         activate_previous_app();
+
+        // Restore main window in background
+        if let Some(w) = main_window {
+            let _ = w.show();
+        }
 
         // Give macOS time to complete the app switch
         std::thread::sleep(std::time::Duration::from_millis(150));

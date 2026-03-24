@@ -50,10 +50,22 @@
 7. Enter: `invoke("paste_from_picker", { text })` を呼び出し
 8. Rust `picker.rs`:
    a. クリップボードに書き込み
+   b. メインウィンドウを hide（チラつき防止）
+   c. ピッカーウィンドウを hide
+   d. NSRunningApplication で前のアプリを activate
+   e. メインウィンドウをバックグラウンドで復元
+   f. 150ms 待機後、CGEvent で ⌘+V をシミュレート
+9. 前のアプリにペーストされる
+
+### Esc キャンセルフロー
+
+1. PickerApp: Escape キー → `invoke("hide_picker_window")`
+2. Rust `picker.rs`:
+   a. メインウィンドウを hide（チラつき防止）
    b. ピッカーウィンドウを hide
    c. NSRunningApplication で前のアプリを activate
-   d. 150ms 待機後、CGEvent で ⌘+V をシミュレート
-9. 前のアプリにペーストされる
+   d. メインウィンドウをバックグラウンドで復元
+3. 前のアプリにフォーカスが戻る（ペーストなし）
 
 ## エッジケース
 
