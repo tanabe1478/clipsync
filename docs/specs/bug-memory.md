@@ -43,7 +43,40 @@
 - **修正**: `useRealtimeClips` の INSERT ハンドラで `prev.some((c) => c.id === payload.new.id)` による重複チェックを追加
 - **教訓**: 楽観的更新と Realtime を併用する場合、Realtime 側で既存 ID をスキップする重複排除が必須
 
+### BUG-005: enigo による Cmd+V シミュレーションが macOS でクラッシュ
+
+- **発見日**: 2026-03-24
+- **影響**: ピッカーからクリップ選択後、IME 候補確定の Enter でアプリがクラッシュ
+- **原因**: `enigo` の `keycode_to_string` が `TSMGetInputSourceProperty` を呼ぶが、これはメインスレッド必須の macOS API。`std::thread::spawn` 内から呼ばれてスレッド違反
+- **修正**: macOS では enigo を使わず `core-graphics` の `CGEvent` API で直接キーイベントを生成。CGEvent はスレッドセーフ
+- **教訓**: macOS のキーボードシミュレーションには CGEvent API を使うこと。enigo は内部で TSM API を呼ぶためメインスレッド外で使えない
+
+### BUG-006: ピッカー選択後にメインウィンドウにフォーカスが移る
+
+- **発見日**: 2026-03-24
+- **影響**: ピッカーからクリップ選択すると ClipSync のメインウィンドウが前に出て、ペーストが ClipSync にされてしまう
+- **原因**: picker ウィンドウを hide すると macOS が同一アプリの別ウィンドウ（メインウィンドウ）にフォーカスを移す
+- **修正**: Raycast/Alfred 方式を採用。ピッカー表示前に NSWorkspace で前のアプリの PID を記録し、選択後に NSRunningApplication で明示的に activate
+- **教訓**: macOS でフローティングウィンドウから前のアプリに戻すには、個別ウィンドウの hide ではなくアプリレベルの activate が必要
+
 ## パターン集
+
+### パターン: macOS でのキーボードシミュレーション
+
+CGEvent API を使う。enigo はメインスレッド制約で使えない場合がある:
+```rust
+use core_graphics::event::{CGEvent, CGEventFlags, CGEventTapLocation};
+let key_down = CGEvent::new_keyboard_event(source, V_KEY, true)?;
+key_down.set_flags(CGEventFlags::CGEventFlagCommand);
+key_down.post(CGEventTapLocation::HID);
+```
+
+### パターン: Raycast 方式のフォーカス管理
+
+フローティングピッカーから前のアプリに戻る:
+1. 表示前: `NSWorkspace::sharedWorkspace().frontmostApplication()` で PID を記録
+2. 選択後: `NSRunningApplication::runningApplicationWithProcessIdentifier(pid).activate()`
+3. 待機後: CGEvent でキーシミュレート
 
 ### パターン: Tauri プラグインの dev モード対応
 

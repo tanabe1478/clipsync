@@ -1,6 +1,6 @@
 # Spec: Clipboard Flow
 
-> Trigger: commands.rs, lib.rs, shortcuts.rs, App.tsx
+> Trigger: commands.rs, lib.rs, shortcuts.rs, picker.rs, App.tsx
 > Last updated: 2026-03-24
 
 ## 概要
@@ -39,14 +39,21 @@
 7. `saveClip({ content, device_name })` → Supabase INSERT
 8. 成功: `logger.info()` + トースト表示
 
-## ペーストフロー
+## ペーストフロー（Spotlight 風フローティングピッカー）
 
-1. ユーザーが `⌘+Alt+V` (Mac) / `Ctrl+Alt+V` (Windows) を押す
-2. Rust: `emit("show-history", ())`
-3. Frontend: `setShowHistory(true)` → HistoryPicker 表示
-4. ユーザーが候補を選択（矢印キー or クリック）
-5. `invoke("write_clipboard", { text })` → システムクリップボードに書き込み
-6. HistoryPicker を閉じる
+1. ユーザーが `⌘+Alt+V` を押す（どのアプリからでも）
+2. Rust `shortcuts.rs`: `show-history` イベント emit + `picker::show_picker()` 呼び出し
+3. `picker.rs`: NSWorkspace で前のアプリの PID を記録
+4. フローティングウィンドウ（`picker.html`）を画面中央に表示（always_on_top）
+5. main window が `request-clips` を受けて `clips-for-picker` で clips データを push
+6. PickerApp: fuse.js で曖昧検索、↑↓ で選択
+7. Enter: `invoke("paste_from_picker", { text })` を呼び出し
+8. Rust `picker.rs`:
+   a. クリップボードに書き込み
+   b. ピッカーウィンドウを hide
+   c. NSRunningApplication で前のアプリを activate
+   d. 150ms 待機後、CGEvent で ⌘+V をシミュレート
+9. 前のアプリにペーストされる
 
 ## エッジケース
 

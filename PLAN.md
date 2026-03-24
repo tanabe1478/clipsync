@@ -1,36 +1,37 @@
 # ClipSync - Implementation Plan
 
-## Current: Phase 1 (Mac + Windows Desktop)
+## Phase 1: Desktop (Mac + Windows) ✅
 
-### Architecture
-```
-Tauri App (Rust + React)
-  ├── Global Hotkey (⌘⇧C / ⌘⇧V)
-  ├── Clipboard Read/Write (Rust)
-  ├── Supabase Client (TypeScript)
-  │   ├── Auth (Google Sign-In via deep link)
-  │   ├── CRUD (clips table)
-  │   └── Realtime (Postgres Changes)
-  └── UI (React)
-      ├── AuthScreen
-      ├── ClipList + ClipItem
-      └── HistoryPicker
-```
+- [x] Tauri v2 + React + TypeScript scaffold
+- [x] Supabase: clips table, RLS, Realtime, Google OAuth
+- [x] Clipboard save/paste via global hotkeys (customizable)
+- [x] Spotlight-style floating picker with fuzzy search + auto-paste
+- [x] Settings panel, shortcut customization
+- [x] Dark mode, toast notifications
+- [x] E2E tests (Playwright), unit tests (vitest + cargo test)
+- [x] 3-tier documentation infrastructure (ADR-004)
 
-### Steps
-1. [x] Project scaffolding (Tauri v2 + Vite + React)
-2. [x] Supabase migration (clips table + RLS + Realtime)
-3. [x] Tauri Rust side (clipboard, hotkeys, deep link, IPC commands)
-4. [x] Frontend data layer (types, hooks, Supabase client)
-5. [x] UI components (AuthScreen, ClipList, HistoryPicker)
-6. [x] OAuth deep link flow (clipsync:// scheme)
-7. [x] UI styling (dark mode, animations, toast)
-8. [x] Edge cases (empty content, content truncation)
-9. [x] Build verification (tsc, vite build, cargo tauri build)
+## Phase 2: Android ✅
 
-### Remaining
-- [ ] Supabase project setup + Google OAuth config (manual)
-- [ ] Live integration test with real Supabase
-- [ ] System tray icon
-- [ ] Auto-start on login
-- [ ] Windows build test
+- [x] Flutter app with Riverpod + go_router
+- [x] Google OAuth via supabase_flutter
+- [x] Clip CRUD + Realtime sync
+- [x] Share sheet (ShareReceiverActivity → direct Supabase REST)
+- [x] FAB clipboard save, auto-refresh on foreground
+- [x] Settings screen
+
+## Phase 3: iOS (planned)
+
+- [ ] Flutter iOS build
+- [ ] Universal Links for OAuth
+- [ ] Share extension
+- [ ] App Store submission
+
+## Remaining improvements
+
+- [ ] E2E encryption (client-side encrypt before Supabase)
+- [ ] Image/file clipboard support
+- [ ] Search in main clip list
+- [ ] Auto-expiry (24h auto-delete)
+- [ ] System tray icon (desktop)
+- [ ] Auto-start on login (desktop)

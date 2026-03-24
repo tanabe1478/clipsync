@@ -1,6 +1,6 @@
 # Spec: UI Components
 
-> Trigger: AuthScreen.tsx, ClipList.tsx, ClipItem.tsx, HistoryPicker.tsx, SettingsPanel.tsx, ShortcutRecorder.tsx, App.tsx, index.css
+> Trigger: AuthScreen.tsx, ClipList.tsx, ClipItem.tsx, SettingsPanel.tsx, ShortcutRecorder.tsx, PickerApp.tsx, App.tsx, index.css, picker.css
 > Last updated: 2026-03-24
 
 ## 概要
@@ -17,7 +17,6 @@ App
     ├── header (ClipSync + Sign out)
     ├── ClipList
     │   └── ClipItem × N
-    ├── HistoryPicker (⌘⇧V で表示)
     ├── SettingsPanel (⌘, で表示)
     │   └── ShortcutRecorder × 2
     └── Toast (操作フィードバック)
@@ -42,11 +41,14 @@ App
 - 削除ボタン: ✕（2段階確認: 1回目で「Delete?」表示、2回目で実行、3秒で自動キャンセル）
 - メタ情報: デバイス名 + 相対時間（`timeAgo()`）
 
-### HistoryPicker
-- Props: `clips`, `onSelect`, `onDismiss`
-- モーダルオーバーレイ（背景クリックで閉じる）
-- キーボード操作: ↑↓ で巡回、Enter で選択、Escape で閉じる
-- `⌘⇧V` 連打でも次の候補に移動
+### PickerApp（フローティングウィンドウ — picker.html）
+- 別ウィンドウ（always_on_top、装飾なし、Spotlight 風）
+- `⌘+Alt+V` で画面中央に出現
+- 検索ボックス auto-focus + fuse.js 曖昧検索
+- ↑↓ で選択、Enter で確定（自動ペースト）、Escape で閉じる
+- 選択後: Raycast 方式で前のアプリにフォーカスを戻して CGEvent で ⌘+V シミュレート
+- フォーカス喪失で自動 hide
+- main window とのクリップデータ連携: `request-clips` / `clips-for-picker` イベント
 
 ### SettingsPanel
 - Props: `onClose`, `showToast`
