@@ -1,3 +1,4 @@
+use std::sync::Mutex;
 use tauri::{Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
@@ -5,8 +6,56 @@ const PICKER_LABEL: &str = "picker";
 const PICKER_WIDTH: f64 = 500.0;
 const PICKER_HEIGHT: f64 = 460.0;
 
+/// Stores the PID of the app that was active before the picker was shown.
+static PREVIOUS_APP_PID: Mutex<Option<i32>> = Mutex::new(None);
+
+/// Save the currently focused app's PID before showing the picker.
+#[cfg(target_os = "macos")]
+fn save_frontmost_app() {
+    use objc2_app_kit::NSWorkspace;
+
+    let workspace = NSWorkspace::sharedWorkspace();
+    if let Some(app) = workspace.frontmostApplication() {
+        let pid = app.processIdentifier();
+        if let Ok(mut prev) = PREVIOUS_APP_PID.lock() {
+            *prev = Some(pid);
+            log::info!("Saved frontmost app PID: {pid}");
+        }
+    }
+}
+
+/// Activate the previously saved app by PID.
+#[cfg(target_os = "macos")]
+fn activate_previous_app() {
+    use objc2_app_kit::NSRunningApplication;
+
+    let pid = match PREVIOUS_APP_PID.lock() {
+        Ok(prev) => *prev,
+        Err(_) => None,
+    };
+
+    if let Some(pid) = pid {
+        if let Some(app) = NSRunningApplication::runningApplicationWithProcessIdentifier(pid) {
+            #[allow(deprecated)]
+            app.activateWithOptions(
+                objc2_app_kit::NSApplicationActivationOptions::ActivateIgnoringOtherApps,
+            );
+            log::info!("Activated previous app PID: {pid}");
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn save_frontmost_app() {}
+
+#[cfg(not(target_os = "macos"))]
+fn activate_previous_app() {}
+
 /// Show the picker window (create lazily on first use).
 pub fn show_picker(app: &tauri::AppHandle) -> Result<(), String> {
+    // Remember the currently active app BEFORE showing picker
+    save_frontmost_app();
+
     if let Some(window) = app.get_webview_window(PICKER_LABEL) {
         window.center().map_err(|e| format!("center failed: {e}"))?;
         window.show().map_err(|e| format!("show failed: {e}"))?;
@@ -55,35 +104,28 @@ pub fn hide_picker_window(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub fn paste_from_picker(app: tauri::AppHandle, text: String) -> Result<(), String> {
+    // 1. Write to clipboard
     app.clipboard()
         .write_text(&text)
         .map_err(|e| format!("clipboard write failed: {e}"))?;
 
-    // Hide picker window
+    // 2. Hide picker window
     if let Some(window) = app.get_webview_window(PICKER_LABEL) {
         let _ = window.hide();
     }
 
-    // Also hide main window so macOS returns focus to the previous app
-    // (otherwise macOS activates the main window when picker hides)
-    if let Some(main_window) = app.get_webview_window("main") {
-        let _ = main_window.hide();
-    }
-
-    // Simulate Cmd+V / Ctrl+V after delay for focus to return to previous app
-    let app_for_restore = app.clone();
+    // 3. Activate previous app, then simulate paste
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(250));
+        // Activate the app that was focused before the picker opened
+        activate_previous_app();
+
+        // Give macOS time to complete the app switch
+        std::thread::sleep(std::time::Duration::from_millis(150));
+
         log::info!("Attempting paste simulation...");
         match simulate_paste() {
             Ok(()) => log::info!("Paste simulation completed"),
             Err(e) => log::error!("simulate_paste failed: {e}"),
-        }
-
-        // Re-show main window after paste (but don't focus it)
-        std::thread::sleep(std::time::Duration::from_millis(100));
-        if let Some(main_window) = app_for_restore.get_webview_window("main") {
-            let _ = main_window.show();
         }
     });
 
@@ -91,7 +133,6 @@ pub fn paste_from_picker(app: tauri::AppHandle, text: String) -> Result<(), Stri
 }
 
 /// Simulate Cmd+V (macOS) or Ctrl+V (Windows) using platform-native APIs.
-/// Uses CGEvent on macOS (thread-safe, no TSM issues) and enigo on Windows.
 fn simulate_paste() -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
@@ -114,7 +155,6 @@ fn simulate_paste_macos() -> Result<(), String> {
     use core_graphics::event::{CGEvent, CGEventFlags, CGEventTapLocation, CGKeyCode};
     use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 
-    // Key code 9 = 'v' on US keyboard layout
     const V_KEY: CGKeyCode = 9;
 
     let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState)
